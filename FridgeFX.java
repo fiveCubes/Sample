@@ -1,5 +1,7 @@
 package sample;
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -88,6 +90,9 @@ public class FridgeFX extends Application {
 		tv.getColumns().add(sectionColumn);
 		tv.getColumns().add(daysAgoColumn);
 
+		quantityColumn.setMinWidth(50);
+
+
 		/* TODO 2-05 - TO COMPLETE ****************************************
 		 * add table columns to the table view create above
 		 */
@@ -130,42 +135,75 @@ public class FridgeFX extends Application {
 		  Label checkBoxLabel = new Label ("Show Expire Only");
 		  checkBoxLabel.setDisable(true);
 		  HBox topRow = new HBox(filterTextField,filterLabel,filterchoice,filtercb,checkBoxLabel);
+		  topRow.setSpacing(5);
 
 		  //buttons
 		  Button addBtn = new Button("Add");
 		  Button updateBtn = new Button("Update");
 		  Button deletBtn = new Button("Delete");
 		  HBox buttonBox = new HBox (addBtn,updateBtn,deletBtn);
+		  buttonBox.setSpacing(5);
 
 
 		  //Add controls
+		  //Labels for Add items
+		  Label itemLabel = new Label("Item");
+		  Label sectionLabel = new Label("Section");
+		  Label quantityLabel = new Label ("Quantity");
+
 		  ComboBox<Item> itemAdd = new ComboBox<Item>();
+		  itemAdd.getItems().addAll(fridgeDSC.getAllItems());
 
 		  ChoiceBox<FridgeDSC.SECTION> sectionAdd = new ChoiceBox<>();
 		  sectionAdd.getItems().addAll(FridgeDSC.SECTION.values());
 
-		  TextField quantityAdd = new TextField();
-		  itemAdd.getItems().addAll(fridgeDSC.getAllItems());
-		  HBox addBox = new HBox (itemAdd,sectionAdd,quantityAdd);
+		Button clearBtn = new Button("Clear");
+		Button saveBtn = new Button("Save");
 
-		  Button clearBtn = new Button("Clear");
-		  Button saveBtn = new Button("Save");
+		  TextField quantityAdd = new TextField();
+		  GridPane addGrid = new GridPane();
+		  addGrid.setPadding(new Insets(10,10,10,10));
+		  addGrid.setVgap(5);
+		  addGrid.setHgap(5);
+		  addGrid.add(itemLabel,0,0);
+		  addGrid.add(itemAdd,0,1);
+		  addGrid.add(sectionLabel,1,0);
+		  addGrid.add(sectionAdd,1,1);
+		  addGrid.add(quantityLabel,2,0);
+		  addGrid.add(quantityAdd,2,1);
+
+
+
+		  //HBox addBox = new HBox (itemAdd,sectionAdd,quantityAdd);
+
 
 		  HBox saveBox = new HBox (clearBtn,saveBtn);
+		  saveBox.setSpacing(5);
+		  saveBox.setAlignment(Pos.CENTER);
 
-		  VBox hiddenAddBox = new VBox(addBox,saveBox);
+		  VBox hiddenAddBox = new VBox(addGrid,saveBox);
 		  hiddenAddBox.setVisible(false);
 		  addBtn.setOnAction(e -> hiddenAddBox.setVisible(true));
 
 		  saveBtn.setOnAction(e->
 		  {
-			  //System.out.println(itemAdd.getValue().getName() + sectionAdd.getValue().toString() + quantityAdd.getText());
 			  try {
-				  fridgeDSC.addGrocery(itemAdd.getValue().getName(), Integer.parseInt(quantityAdd.getText()), sectionAdd.getValue());
-				  tableData.clear();
-				  tableData.addAll(fridgeDSC.getAllGroceries());
-				  tv.getSelectionModel().clearSelection();
-				  hiddenAddBox.setVisible(false);
+				  Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+				  alert.setContentText("Are you sure to add the item?");
+				  Optional<ButtonType> result = alert.showAndWait();
+				  if (result.isPresent()) {
+					  if (result.get() == ButtonType.OK) {
+						  fridgeDSC.addGrocery(itemAdd.getValue().getName(), Integer.parseInt(quantityAdd.getText()), sectionAdd.getValue());
+						  tableData.clear();
+						  tableData.addAll(fridgeDSC.getAllGroceries());
+						  itemAdd.getSelectionModel().clearSelection();
+						  sectionAdd.getSelectionModel().clearSelection();
+						  quantityAdd.clear();
+						  tv.getSelectionModel().clearSelection();
+
+						  hiddenAddBox.setVisible(false);
+					  }
+				  }
 			  }
 			  catch (NumberFormatException n)
 			  {
@@ -177,9 +215,19 @@ public class FridgeFX extends Application {
 			  }
 			  catch(Exception ex)
 			  {
-			  	System.out.println(ex.toString() );
+				  Alert alert = new Alert(Alert.AlertType.ERROR);
+				  alert.setHeaderText(ex.toString());
+				  //alert.setContentText(" Please add a number to quantity");
+				  Optional<ButtonType> result = alert.showAndWait();
 			  }
 		  });
+
+		  //clear button
+		 clearBtn.setOnAction(e-> {
+		 	itemAdd.getSelectionModel().clearSelection();
+		 	sectionAdd.getSelectionModel().clearSelection();
+		 	quantityAdd.clear();
+		 });
 
 		  //update button
 
@@ -192,6 +240,14 @@ public class FridgeFX extends Application {
 				tableData.clear();
 				tableData.addAll(fridgeDSC.getAllGroceries());
 				tv.getSelectionModel().clearSelection();
+			}
+			catch(NullPointerException n)
+			{
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setHeaderText(n.toString());
+				alert.setContentText("Please select a row from table to update");
+				Optional<ButtonType> result = alert.showAndWait();
+
 			}
 			catch (Exception exception)
 			{
@@ -208,32 +264,55 @@ public class FridgeFX extends Application {
 		{
 			hiddenAddBox.setVisible(false);
 			Grocery g = tv.getSelectionModel().getSelectedItem();
-			try {
-				Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-				alert.setContentText("Are you sure? Delete Selected Grocery?");
-				Optional<ButtonType> result = alert.showAndWait();
-				if (result.isPresent())
-				{
-					if(result.get() == ButtonType.OK)
-					{
-						fridgeDSC.removeGrocery(g.getId());
-						tableData.clear();
-						tableData.addAll(fridgeDSC.getAllGroceries());
-						tv.getSelectionModel().clearSelection();
+			if ( g !=null) {
+				try {
+					Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+					alert.setContentText("Are you sure? Delete Selected Grocery?");
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent()) {
+						if (result.get() == ButtonType.OK) {
+							fridgeDSC.removeGrocery(g.getId());
+							tableData.clear();
+							tableData.addAll(fridgeDSC.getAllGroceries());
+							tv.getSelectionModel().clearSelection();
+						}
 					}
 				}
+				catch (Exception exception)
+				{
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.setHeaderText(exception.toString());
+					Optional<ButtonType> result = alert.showAndWait();
+
+				}
 			}
-			catch (Exception exception)
+			else
 			{
-				System.out.println(exception);
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				//alert.setHeaderText(n.toString());
+				alert.setContentText("Please select a row from table to delete");
+				Optional<ButtonType> result = alert.showAndWait();
+
 			}
+
 
 		});
 
 
 
 
+
+        filtercb.selectedProperty().addListener(observable -> {
+
+        	String txt = filterTextField.getText();
+        	filterTextField.clear();
+        	filterTextField.setText(txt);
+		});
+
 		filterchoice.getSelectionModel().selectedItemProperty().addListener((observableValue,oldValue,newValue) -> {
+			String txt = filterTextField.getText();
+			filterTextField.clear();
+			filterTextField.setText(txt);
 			if (newValue.equalsIgnoreCase("BOUGHT DAYS AGO"))
 			{
 				checkBoxLabel.setDisable(false);
@@ -254,31 +333,27 @@ public class FridgeFX extends Application {
 
 
 
-
 		/* TODO 2-09 - TO COMPLETE ****************************************
 		 * filter container - part 2:
 		 * - addListener to the "Filter By" ChoiceBox to clear the filter
 		 *   text field vlaue and to enable the "Show Expire Only" CheckBox
 		 *   if "BOUGHT_DAYS_AGO" is selected
 		 */
-
 		filterTextField.textProperty().addListener((observableValue,oldValue,newValue) ->
 				{
-					System.out.println("listener activated");
+
 					filterList.setPredicate(grocerydata ->
 					{
-						System.out.println(newValue);
 						if (newValue == null || newValue.isEmpty()) {
-							System.out.println("null value");
+
 							return true;
 						}
+
 						String filterString = newValue.toUpperCase();
-						System.out.println(filterString);
-						if (filterchoice.getValue().equalsIgnoreCase("Item"))
+						if (filterchoice.getValue().equalsIgnoreCase("item"))
 						{
 							if (grocerydata.getItemName().toUpperCase().contains(filterString))
 							{
-								System.out.println("filter applied for items");
 								return true;
 							} else
 								{
@@ -381,6 +456,8 @@ public class FridgeFX extends Application {
 		// =====================================================================
 		// Create scene and set stage
 		VBox root = new VBox(topRow,tv,buttonBox,hiddenAddBox);
+		root.setSpacing(5);
+		root.setPadding(new Insets(5,5,5,10));
 
 		/* TODO 2-14 - TO COMPLETE ****************************************
 		 * - add all your containers, controls to the root
@@ -391,7 +468,7 @@ public class FridgeFX extends Application {
 			"-fx-alignment: center;"
 		);
 
-		Scene scene = new Scene(root,700,500);
+		Scene scene = new Scene(root,800,600);
 		stage.setScene(scene);
 	}
 
