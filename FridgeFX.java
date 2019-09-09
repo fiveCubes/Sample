@@ -386,7 +386,8 @@ public class FridgeFX extends Application {
 		filterTextField.textProperty().addListener((observableValue,oldValue,newValue) ->
 				{
 
-					filterList.setPredicate(grocerydata ->
+					filterList.setPredicate(grocerydata ->{
+							try{
 					{
 						if (newValue == null || newValue.isEmpty()) {
 
@@ -416,9 +417,11 @@ public class FridgeFX extends Application {
 						}
 						else if (filterchoice.getValue().equalsIgnoreCase("Bought days ago"))
 						{
+							int daysAgo = grocerydata.getDaysAgo().equalsIgnoreCase("today")? 0:
+									Integer.parseInt(grocerydata.getDaysAgo().substring(0,grocerydata.getDaysAgo().indexOf(" ")));
 							if(filtercb.isSelected())
 							{
-								if(grocerydata.getDaysAgo().contains(filterString) && grocerydata.getItem().canExpire())
+								if(daysAgo >= Integer.parseInt(filterTextField.getText()) && grocerydata.getItem().canExpire())
 								{
 									return true;
 								}
@@ -431,7 +434,7 @@ public class FridgeFX extends Application {
 							}
 							else
 							{
-								if(grocerydata.getDaysAgo().contains(filterString))
+								if(daysAgo >= Integer.parseInt(filterTextField.getText()))
 								{
 									return true;
 								}
@@ -448,7 +451,11 @@ public class FridgeFX extends Application {
 						}
 
 
-					});
+					}}
+							catch(Exception e)
+					{
+						return false;
+					}});
 				});
 
 		/* TODO 2-10 - TO COMPLETE ****************************************
