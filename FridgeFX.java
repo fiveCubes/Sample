@@ -188,22 +188,52 @@ public class FridgeFX extends Application {
 		  saveBtn.setOnAction(e->
 		  {
 			  try {
-				  Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-				  alert.setContentText("Are you sure to add the item?");
-				  Optional<ButtonType> result = alert.showAndWait();
-				  if (result.isPresent()) {
-					  if (result.get() == ButtonType.OK) {
-						  fridgeDSC.addGrocery(itemAdd.getValue().getName(), Integer.parseInt(quantityAdd.getText()), sectionAdd.getValue());
-						  tableData.clear();
-						  tableData.addAll(fridgeDSC.getAllGroceries());
-						  itemAdd.getSelectionModel().clearSelection();
-						  sectionAdd.getSelectionModel().clearSelection();
-						  quantityAdd.clear();
-						  tv.getSelectionModel().clearSelection();
+				  if ((itemAdd.getValue().getName()!= null) && sectionAdd.getValue()!=null)
+				  {
+				  	System.out.println(quantityAdd.getText()!=null);
+				  	if(!quantityAdd.getText().isEmpty()){
+				  		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+				  		alert.setContentText("Are you sure to add the item?");
+				  		Optional<ButtonType> result = alert.showAndWait();
+				  		if (result.isPresent()) {
+					  		if (result.get() == ButtonType.OK) {
+								fridgeDSC.addGrocery(itemAdd.getValue().getName(), Integer.parseInt(quantityAdd.getText()), sectionAdd.getValue());
+								tableData.clear();
+								tableData.addAll(fridgeDSC.getAllGroceries());
+								Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+								infoAlert.setContentText("Item successfully added to the Fridge");
+								infoAlert.showAndWait();
+								itemAdd.getSelectionModel().clearSelection();
+								sectionAdd.getSelectionModel().clearSelection();
+								quantityAdd.clear();
+								tv.getSelectionModel().clearSelection();
+								hiddenAddBox.setVisible(false);
+							}
 
-						  hiddenAddBox.setVisible(false);
 					  }
 				  }
+				  	else
+					{
+						Alert alert = new Alert(Alert.AlertType.ERROR);
+						alert.setContentText("Quantity cannot be empty Please add a Quantity value");
+						Optional<ButtonType> result = alert.showAndWait();
+					}
+			  }
+				  else
+				  {
+					  Alert alert = new Alert(Alert.AlertType.ERROR);
+					  alert.setContentText("Section cannot be empty Please add a section");
+					  Optional<ButtonType> result = alert.showAndWait();
+				  }
+
+			  }
+			  catch (NullPointerException empty)
+			  {
+				  Alert alert = new Alert(Alert.AlertType.ERROR);
+				  alert.setHeaderText(empty.toString());
+				  alert.setContentText("Item Value Cannot be Empty Please add an Item");
+				  Optional<ButtonType> result = alert.showAndWait();
+
 			  }
 			  catch (NumberFormatException n)
 			  {
@@ -235,24 +265,35 @@ public class FridgeFX extends Application {
 		{
 			hiddenAddBox.setVisible(false);
 			Grocery g = tv.getSelectionModel().getSelectedItem();
-			try {
-				fridgeDSC.useGrocery(g.getId());
-				tableData.clear();
-				tableData.addAll(fridgeDSC.getAllGroceries());
-				tv.getSelectionModel().clearSelection();
-			}
-			catch(NullPointerException n)
-			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setHeaderText(n.toString());
-				alert.setContentText("Please select a row from table to update");
-				Optional<ButtonType> result = alert.showAndWait();
+			if (g !=null) {
+				try {
+					Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+					alert.setContentText("Are you sure? You want to Update the selected Grocery?");
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent()) {
+						if (result.get() == ButtonType.OK) {
+							fridgeDSC.useGrocery(g.getId());
+							tableData.clear();
+							tableData.addAll(fridgeDSC.getAllGroceries());
+							Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+							infoAlert.setContentText(" Item Id " + g.getId() + ": " + g.getItemName() + " quantity is reduced from " + g.getQuantity() + " to " +(g.getQuantity()-1) );
+							infoAlert.showAndWait();
+							tv.getSelectionModel().clearSelection();
+						}
+					}
 
+				} catch (Exception exception) {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					//alert.setHeaderText(e.toString());
+					alert.setContentText(exception.toString());
+					Optional<ButtonType> result = alert.showAndWait();
+
+				}
 			}
-			catch (Exception exception)
+			else
 			{
 				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setContentText(exception.toString());
+				alert.setContentText("Please select a row from table to update");
 				Optional<ButtonType> result = alert.showAndWait();
 			}
 
@@ -274,6 +315,9 @@ public class FridgeFX extends Application {
 							fridgeDSC.removeGrocery(g.getId());
 							tableData.clear();
 							tableData.addAll(fridgeDSC.getAllGroceries());
+							Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+							infoAlert.setContentText("Item Id " +g.getId() +": " + g.getItemName() + " is deleted from the grocery " );
+							infoAlert.showAndWait();
 							tv.getSelectionModel().clearSelection();
 						}
 					}
@@ -281,7 +325,7 @@ public class FridgeFX extends Application {
 				catch (Exception exception)
 				{
 					Alert alert = new Alert(Alert.AlertType.ERROR);
-					alert.setHeaderText(exception.toString());
+					alert.setContentText(exception.toString());
 					Optional<ButtonType> result = alert.showAndWait();
 
 				}
@@ -473,6 +517,16 @@ public class FridgeFX extends Application {
 	}
 
 	public void stop() throws Exception {
+		try
+		{
+			FridgeDSC.disconnect();
+		}
+		catch (Exception exception)
+		{
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setContentText(exception.toString());
+			Optional<ButtonType> result = alert.showAndWait();
+		}
 
 		/* TODO 2-15 - TO COMPLETE ****************************************
 		 * call the data source controller database disconnect method
