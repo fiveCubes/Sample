@@ -338,7 +338,12 @@ public class FridgeFX extends Application {
 		hiddenAddBox.setVisible(false);
 		addBtn.setOnAction(e -> hiddenAddBox.setVisible(true));
 
-
+        Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+        infoAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        Alert errorAlert = new Alert (Alert.AlertType.ERROR);
+		errorAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+		confirmationAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 		saveBtn.setOnAction(e->
 		{
 			try {
@@ -346,15 +351,13 @@ public class FridgeFX extends Application {
 				{
 					System.out.println(quantityAdd.getText()!=null);
 					if(!quantityAdd.getText().isEmpty()){
-						Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-						alert.setContentText("Are you sure to add the item?");
-						Optional<ButtonType> result = alert.showAndWait();
+						confirmationAlert.setContentText("Are you sure to add the item?");
+						Optional<ButtonType> result = confirmationAlert.showAndWait();
 						if (result.isPresent()) {
 							if (result.get() == ButtonType.OK) {
 								fridgeDSC.addGrocery(itemAdd.getValue().getName(), Integer.parseInt(quantityAdd.getText()), sectionAdd.getValue());
 								tableData.clear();
 								tableData.addAll(fridgeDSC.getAllGroceries());
-								Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
 								infoAlert.setContentText("Item successfully added to the Fridge");
 								infoAlert.showAndWait();
 								itemAdd.getSelectionModel().clearSelection();
@@ -368,41 +371,35 @@ public class FridgeFX extends Application {
 					}
 					else
 					{
-						Alert alert = new Alert(Alert.AlertType.ERROR);
-						alert.setContentText("Quantity cannot be empty Please add a Quantity value");
-						Optional<ButtonType> result = alert.showAndWait();
+						errorAlert.setContentText("Quantity cannot be empty Please add a Quantity value");
+						errorAlert.showAndWait();
 					}
 				}
 				else
 				{
-					Alert alert = new Alert(Alert.AlertType.ERROR);
-					alert.setContentText("Section cannot be empty Please add a section");
-					Optional<ButtonType> result = alert.showAndWait();
+					errorAlert.setContentText("Section cannot be empty Please add a section");
+					errorAlert.showAndWait();
 				}
 
 			}
 			catch (NullPointerException empty)
 			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setHeaderText(empty.toString());
-				alert.setContentText("Item Value Cannot be Empty Please add an Item");
-				Optional<ButtonType> result = alert.showAndWait();
+				errorAlert.setHeaderText(empty.toString());
+				errorAlert.setContentText("Item Value Cannot be Empty Please add an Item");
+				errorAlert.showAndWait();
 
 			}
 			catch (NumberFormatException n)
 			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setHeaderText(n.toString());
-				alert.setContentText(" Please add a number to quantity");
-				Optional<ButtonType> result = alert.showAndWait();
+				errorAlert.setHeaderText(n.toString());
+				errorAlert.setContentText(" Please add a number to quantity");
+				errorAlert.showAndWait();
 
 			}
 			catch(Exception ex)
 			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setHeaderText(ex.toString());
-				//alert.setContentText(" Please add a number to quantity");
-				Optional<ButtonType> result = alert.showAndWait();
+				errorAlert.setContentText(ex.toString());
+				errorAlert.showAndWait();
 			}
 		});
 
@@ -429,7 +426,6 @@ public class FridgeFX extends Application {
 							fridgeDSC.useGrocery(g.getId());
 							tableData.clear();
 							tableData.addAll(fridgeDSC.getAllGroceries());
-							Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
 							infoAlert.setContentText(" Item Id " + g.getId() + ": " + g.getItemName() + " quantity is reduced from " + g.getQuantity() + " to " +(g.getQuantity()-1) );
 							infoAlert.showAndWait();
 							tv.getSelectionModel().clearSelection();
@@ -437,18 +433,15 @@ public class FridgeFX extends Application {
 					}
 
 				} catch (Exception exception) {
-					Alert alert = new Alert(Alert.AlertType.ERROR);
-					//alert.setHeaderText(e.toString());
-					alert.setContentText(exception.toString());
-					Optional<ButtonType> result = alert.showAndWait();
+					errorAlert.setContentText(exception.toString());
+					errorAlert.showAndWait();
 
 				}
 			}
 			else
 			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setContentText("Please select a row from table to update");
-				Optional<ButtonType> result = alert.showAndWait();
+				errorAlert.setContentText("Please select a row from table to update");
+				errorAlert.showAndWait();
 			}
 
 		});
@@ -469,8 +462,7 @@ public class FridgeFX extends Application {
 							fridgeDSC.removeGrocery(g.getId());
 							tableData.clear();
 							tableData.addAll(fridgeDSC.getAllGroceries());
-							Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
-							infoAlert.setContentText("Item Id " +g.getId() +": " + g.getItemName() + " is deleted from the grocery " );
+							infoAlert.setContentText("Item Id " +g.getId() +": " + g.getItemName() + " is removed from the fridge " );
 							infoAlert.showAndWait();
 							tv.getSelectionModel().clearSelection();
 						}
@@ -478,18 +470,15 @@ public class FridgeFX extends Application {
 				}
 				catch (Exception exception)
 				{
-					Alert alert = new Alert(Alert.AlertType.ERROR);
-					alert.setContentText(exception.toString());
-					Optional<ButtonType> result = alert.showAndWait();
+					errorAlert.setContentText(exception.toString());
+					errorAlert.showAndWait();
 
 				}
 			}
 			else
 			{
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				//alert.setHeaderText(n.toString());
-				alert.setContentText("Please select a row from table to delete");
-				Optional<ButtonType> result = alert.showAndWait();
+				errorAlert.setContentText("Please select a row from table to delete");
+				 errorAlert.showAndWait();
 
 			}
 
